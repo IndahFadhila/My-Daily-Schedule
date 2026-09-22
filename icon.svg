@@ -1,11 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#D5E4F9"/>
-      <stop offset="0.55" stop-color="#A697D6"/>
-      <stop offset="1" stop-color="#2A2D5E"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" fill="url(#sky)" rx="96"/>
-  <text x="256" y="380" text-anchor="middle" font-size="340">🌸</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <text y=".95em" font-size="96">🌠</text>
 </svg>
