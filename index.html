@@ -43,6 +43,9 @@
 </div>
 
 <header class="top">
+  <button class="settings-btn" id="settingsBtn" type="button" aria-label="Buka pengaturan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
   <h1><span aria-hidden="true">🌤️</span> Indah's Daily</h1>
   <div class="tabs" id="tabs" role="tablist" aria-label="Pilih tampilan"></div>
 </header>
@@ -86,10 +89,6 @@
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.888 17.888 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><path d="m2 2 20 20"/></svg>
         Notif
       </button>
-      <button class="action" id="testNotifBtn" type="button" hidden>
-        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-        Test
-      </button>
     </div>
   </section>
 
@@ -111,6 +110,30 @@
     <a href="https://github.com/IndahFadhila/My-Daily-Schedule" target="_blank" rel="noopener noreferrer">Source</a>
   </div>
 </main>
+
+<div class="settings-panel" id="settingsPanel" hidden>
+  <div class="settings-backdrop" id="settingsBackdrop"></div>
+  <div class="settings-sheet" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-head">
+      <h2 id="settingsTitle">Pengaturan</h2>
+      <button class="settings-close" id="settingsClose" type="button" aria-label="Tutup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    <div class="settings-body">
+      <div class="settings-row" id="settingsTestRow" hidden>
+        <div class="settings-info">
+          <div class="settings-label">Test notifikasi</div>
+          <div class="settings-desc">Kirim notif percobaan buat cek jalan atau nggak</div>
+        </div>
+        <button class="settings-action" id="testNotifBtn" type="button">Kirim</button>
+      </div>
+      <div class="settings-empty" id="settingsNoNotif" hidden>
+        Aktifin <b>Notif</b> dulu di halaman utama, terus balik ke sini buat kirim test.
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal-backdrop" id="modalBackdrop" hidden>
   <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalMsg">

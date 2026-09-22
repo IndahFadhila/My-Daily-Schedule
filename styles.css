@@ -599,6 +599,134 @@ li.item.done h2{text-decoration:line-through}
   text-align:center;
 }
 
+/* ---------- settings gear button in header ---------- */
+.settings-btn{
+  position:absolute;
+  top:calc(14px + env(safe-area-inset-top,0px));
+  right:16px;
+  width:36px; height:36px;
+  border-radius:50%;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,0.55);
+  color:var(--ink);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  transition:background .15s ease, transform .15s ease;
+  z-index:1;
+}
+.settings-btn:hover{
+  background:rgba(255,255,255,0.85);
+  transform:translateY(-1px);
+}
+.settings-btn svg{width:18px; height:18px}
+
+/* ---------- settings panel modal ---------- */
+.settings-panel{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  padding:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:fadeIn .15s ease;
+}
+.settings-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(42,33,64,0.45);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+}
+.settings-sheet{
+  position:relative;
+  background:#fff;
+  border-radius:24px;
+  padding:18px 20px 22px;
+  max-width:400px;
+  width:100%;
+  box-shadow:var(--sh-lg);
+  animation:popIn .22s cubic-bezier(0.34,1.56,0.64,1);
+}
+.settings-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+.settings-head h2{
+  font-family:'Poppins',system-ui,sans-serif;
+  font-weight:800; font-size:1.1rem;
+  margin:0;
+  color:var(--ink);
+}
+.settings-close{
+  width:32px; height:32px;
+  border-radius:50%;
+  border:none;
+  background:#F3F0F7;
+  color:var(--ink);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition:background .15s ease;
+}
+.settings-close:hover{background:#E8E3EE}
+.settings-close svg{width:18px; height:18px}
+.settings-body{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.settings-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#F7F4FB;
+  border:1px solid var(--line);
+}
+.settings-info{flex:1; min-width:0}
+.settings-label{
+  font-family:'Poppins',system-ui,sans-serif;
+  font-weight:700; font-size:.9rem;
+  color:var(--ink);
+}
+.settings-desc{
+  font-size:.78rem;
+  color:var(--ink-soft);
+  margin-top:2px;
+  line-height:1.4;
+}
+.settings-action{
+  font-family:'Poppins',system-ui,sans-serif;
+  font-weight:700; font-size:.82rem;
+  padding:8px 16px;
+  border-radius:999px;
+  border:none;
+  background:var(--ink);
+  color:#fff;
+  cursor:pointer;
+  transition:background .15s ease, transform .15s ease;
+  flex-shrink:0;
+  min-height:38px;
+}
+.settings-action:hover{background:#3A2F55; transform:translateY(-1px)}
+.settings-empty{
+  text-align:center;
+  font-size:.85rem;
+  color:var(--ink-soft);
+  padding:20px 10px;
+  line-height:1.5;
+}
+.settings-empty b{color:var(--ink); font-weight:800}
+
 /* ---------- credit pill ---------- */
 .credit-pill{
   display:flex;

@@ -95,6 +95,12 @@
     clearAllBtn: $("clearAllBtn"),
     notifBtn: $("notifBtn"),
     testNotifBtn: $("testNotifBtn"),
+    settingsBtn: $("settingsBtn"),
+    settingsPanel: $("settingsPanel"),
+    settingsBackdrop: $("settingsBackdrop"),
+    settingsClose: $("settingsClose"),
+    settingsTestRow: $("settingsTestRow"),
+    settingsNoNotif: $("settingsNoNotif"),
     scheduleView: $("scheduleView"),
     reportView: $("reportView"),
     timeline: $("timeline"),
@@ -653,8 +659,6 @@
     dom.notifBtn.title = on
       ? "Notifikasi aktif - klik buat matiin"
       : "Klik buat aktifin notifikasi kegiatan";
-    // Tombol Test cuma muncul kalau notif ON
-    dom.testNotifBtn.hidden = !on;
   }
 
   // Trigger fake activity notif buat testing - pake kegiatan yang lagi berlangsung
@@ -975,6 +979,29 @@
   dom.clearAllBtn.addEventListener("click", clearAll);
   dom.notifBtn.addEventListener("click", toggleNotif);
   dom.testNotifBtn.addEventListener("click", fireTestNotif);
+
+  // ---------- settings modal ----------
+  let settingsPrevFocus = null;
+  function openSettings(){
+    settingsPrevFocus = document.activeElement;
+    const on = notifEnabled && notifPermission() === "granted";
+    dom.settingsTestRow.hidden = !on;
+    dom.settingsNoNotif.hidden = on;
+    dom.settingsPanel.hidden = false;
+    requestAnimationFrame(() => dom.settingsClose.focus());
+    document.addEventListener("keydown", settingsKeyHandler);
+  }
+  function closeSettings(){
+    dom.settingsPanel.hidden = true;
+    document.removeEventListener("keydown", settingsKeyHandler);
+    if(settingsPrevFocus && settingsPrevFocus.focus) settingsPrevFocus.focus();
+  }
+  function settingsKeyHandler(e){
+    if(e.key === "Escape") closeSettings();
+  }
+  dom.settingsBtn.addEventListener("click", openSettings);
+  dom.settingsClose.addEventListener("click", closeSettings);
+  dom.settingsBackdrop.addEventListener("click", closeSettings);
 
   // Init notif state: nyala kalau user udah pernah aktifin & permission masih granted.
   if(notifSupported()){
