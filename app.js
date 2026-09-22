@@ -222,14 +222,14 @@
     }
     return streak;
   }
-  // Metafora tumbuh: benih -> daun -> kuncup -> bunga mekar -> bunga besar -> pohon
+  // Celestial theme (matches streak emoji): dawn -> moon -> spark -> sparkle -> star -> supernova
   function streakMessage(streak){
-    if(streak >= 30) return "Udah jadi pohon! Legendaris banget.";
-    if(streak >= 14) return "Bunga mekar penuh, kamu makin kuat.";
-    if(streak >= 7)  return "Mekar! Seminggu penuh konsisten.";
-    if(streak >= 3)  return "Mulai kuncup, dikit lagi mekar!";
-    if(streak >= 1)  return "Baru tumbuh, jangan berhenti.";
-    return "Yuk tanem benihnya hari ini!";
+    if(streak >= 30) return "Legendary! You're glowing bright.";
+    if(streak >= 14) return "Your star shines strong.";
+    if(streak >= 7)  return "A whole week of sparkle!";
+    if(streak >= 3)  return "Sparks are lighting up!";
+    if(streak >= 1)  return "First glow - keep going.";
+    return "Let's start tonight!";
   }
   function streakEmoji(streak){
     if(streak >= 30) return "🌟";
@@ -622,7 +622,7 @@
     numWrap.appendChild(num);
     const lbl = document.createElement("div");
     lbl.className = "streak-label";
-    lbl.textContent = "hari beruntun (≥50% selesai)";
+    lbl.textContent = "day streak (≥50% done)";
     const msg = document.createElement("div");
     msg.className = "streak-msg";
     msg.textContent = streakMessage(streak);
