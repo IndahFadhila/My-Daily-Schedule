@@ -327,6 +327,8 @@
     if(hasCelebratedToday(schedKey)) return;
     markCelebrated(schedKey);
     playCelebrationSound();
+    // Fire notif juga (buat kasus tab background / minimize)
+    fireDoneNotif(schedKey);
     await showConfirm({
       icon: "🎉",
       title: "Semua selesai!",
@@ -334,6 +336,82 @@
       okText: "Yeay!",
       cancelText: ""
     });
+  }
+
+  // ---------- notif motivasi (done + incomplete end-of-day) ----------
+  const NOTIF_FIRED_KEY = "jadwal_notif_fired_v1";
+  const END_OF_DAY_MIN = 22 * 60; // 22:00 - waktu incomplete notif fire
+
+  function loadNotifFired(){
+    try{
+      const raw = localStorage.getItem(NOTIF_FIRED_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveNotifFired(map){
+    try{ localStorage.setItem(NOTIF_FIRED_KEY, JSON.stringify(map)); }catch(e){}
+  }
+  function notifFiredKey(schedKey, kind){
+    return kind + "_" + schedKey + "_" + todayKey();
+  }
+  function hasFiredNotif(schedKey, kind){
+    return !!loadNotifFired()[notifFiredKey(schedKey, kind)];
+  }
+  function markFiredNotif(schedKey, kind){
+    const today = todayKey();
+    const map = loadNotifFired();
+    const fresh = {};
+    // Buang entry hari-hari sebelumnya
+    Object.keys(map).forEach(k => {
+      if(k.endsWith("_" + today)) fresh[k] = map[k];
+    });
+    fresh[notifFiredKey(schedKey, kind)] = true;
+    saveNotifFired(fresh);
+  }
+
+  function fireDoneNotif(schedKey){
+    if(!notifEnabled) return;
+    if(hasFiredNotif(schedKey, "done")) return;
+    markFiredNotif(schedKey, "done");
+    fireNotif("Semua kelar hari ini! ٩(◕‿◕)۶", {
+      body: "Kamu keren banget, istirahat yang cukup ya ✨🌟",
+      tag: "jadwal-done"
+    });
+  }
+
+  function fireIncompleteNotif(schedKey){
+    if(!notifEnabled) return;
+    if(hasFiredNotif(schedKey, "incomplete")) return;
+    markFiredNotif(schedKey, "incomplete");
+    const items = SCHEDULES[schedKey].items;
+    const total = items.length;
+    const state = loadChecked(schedKey);
+    const done = Object.values(state).filter(Boolean).length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    let body;
+    if(pct >= 80)      body = done + "/" + total + " selesai, hampir sempurna! Besok lebih konsisten ya (｡◕‿◕｡)";
+    else if(pct >= 50) body = done + "/" + total + " selesai. Lumayan produktif, besok bisa lebih baik (￣︶￣)↗";
+    else if(pct >= 1)  body = done + "/" + total + " selesai. Nggak apa-apa, besok mulai lagi ya 💪";
+    else               body = "Belum ada yang di-ceklis nih. Besok coba lagi ya (¯▿¯)";
+    fireNotif("Sisa dilanjut besok ya (￣︶￣)↗", {
+      body: body,
+      tag: "jadwal-incomplete"
+    });
+  }
+
+  // Cek jam 22:00 ke atas - fire incomplete notif atau done notif (once/day)
+  function checkEndOfDayNotif(){
+    if(!notifEnabled) return;
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    if(nowMin < END_OF_DAY_MIN) return;
+    const schedKey = todayScheduleKey();
+    const items = SCHEDULES[schedKey].items;
+    const total = items.length;
+    const state = loadChecked(schedKey);
+    const done = Object.values(state).filter(Boolean).length;
+    if(done < total) fireIncompleteNotif(schedKey);
+    else fireDoneNotif(schedKey);
   }
 
   // ---------- state ----------
@@ -548,6 +626,9 @@
       fireActivityNotif(todayCur);
     }
     lastActivityTitle = todayCur.title;
+
+    // Cek end-of-day notif (fire jam 22:00+ kalau incomplete/done)
+    checkEndOfDayNotif();
   }
 
   // ---------- notifications ----------
