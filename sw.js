@@ -9,7 +9,7 @@
 // Strategy: cache-first buat asset app-shell, network-first buat rest.
 // Kalau update file, bump CACHE_VERSION supaya user dapet versi baru.
 
-const CACHE_VERSION = "jadwal-v12";
+const CACHE_VERSION = "jadwal-v13";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -35,6 +35,23 @@ self.addEventListener("activate", (event) => {
         keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))
       ))
       .then(() => self.clients.claim())
+  );
+});
+
+// Klik notifikasi -> focus PWA yang lagi terbuka, atau buka baru.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow("./");
+      }
+    })
   );
 });
 

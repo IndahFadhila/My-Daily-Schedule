@@ -577,30 +577,64 @@
   }
 
   // Trigger fake activity notif buat testing - pake kegiatan yang lagi berlangsung
-  function fireTestNotif(){
+  async function fireTestNotif(){
     const now = new Date();
     const nowMin = now.getHours()*60 + now.getMinutes();
     const schedKey = todayScheduleKey();
     const items = SCHEDULES[schedKey].items;
     const idx = findCurrentIndex(items, nowMin);
-    fireActivityNotif(items[idx]);
-  }
-  function fireActivityNotif(activity){
-    if(!notifEnabled || notifPermission() !== "granted"){
-      console.warn("[Notif] skip - enabled:", notifEnabled, "perm:", notifPermission());
-      return;
-    }
-    try{
-      // Icon dropped (data URI SVG kadang di-reject sama Chrome mobile).
-      // Notif otomatis pake PWA icon dari manifest kalau di-install sebagai PWA.
-      const n = new Notification("Waktunya " + activity.title, {
-        body: activity.desc,
-        tag: "jadwal-activity",
+    const cur = items[idx];
+    const ok = await fireNotif("Waktunya " + cur.title, {
+      body: cur.desc,
+      tag: "jadwal-activity",
+    });
+    if(!ok){
+      await showConfirm({
+        icon: "⚠️",
+        title: "Test notif gagal",
+        message: "Notif nggak berhasil dikirim. Kalau di HP, install dulu sebagai PWA (Add to Home Screen), buka dari icon PWA (bukan browser tab), terus test lagi.",
+        okText: "OK",
+        cancelText: ""
       });
-      setTimeout(() => { try{ n.close(); }catch(e){} }, 10000);
-    }catch(e){
-      console.warn("[Notif] failed:", e);
     }
+  }
+  // Fire notif via Service Worker (wajib buat Chrome Android + iOS PWA).
+  // Fallback ke constructor Notification() kalau SW nggak available (desktop tanpa SW).
+  async function fireNotif(title, opts){
+    if(notifPermission() !== "granted"){
+      console.warn("[Notif] skip - permission:", notifPermission());
+      return false;
+    }
+    opts = opts || {};
+    // Coba SW dulu (mobile-compatible)
+    try{
+      if('serviceWorker' in navigator){
+        const reg = await navigator.serviceWorker.ready;
+        if(reg && reg.showNotification){
+          await reg.showNotification(title, opts);
+          return true;
+        }
+      }
+    }catch(e){
+      console.warn("[Notif] SW showNotification failed:", e);
+    }
+    // Fallback: konstruktor langsung
+    try{
+      const n = new Notification(title, opts);
+      setTimeout(() => { try{ n.close(); }catch(e){} }, 10000);
+      return true;
+    }catch(e){
+      console.warn("[Notif] constructor failed:", e);
+      return false;
+    }
+  }
+
+  function fireActivityNotif(activity){
+    if(!notifEnabled) return;
+    fireNotif("Waktunya " + activity.title, {
+      body: activity.desc,
+      tag: "jadwal-activity",
+    });
   }
   async function toggleNotif(){
     if(!notifSupported()){
@@ -637,14 +671,18 @@
     notifEnabled = true;
     saveNotifPref(true);
     updateNotifBtnUI();
-    try{
-      const n = new Notification("Notifikasi aktif!", {
-        body: "Kamu bakal dapet notif tiap ganti kegiatan.",
-        tag: "jadwal-test"
+    const ok = await fireNotif("Notifikasi aktif!", {
+      body: "Kamu bakal dapet notif tiap ganti kegiatan.",
+      tag: "jadwal-test"
+    });
+    if(!ok){
+      await showConfirm({
+        icon: "⚠️",
+        title: "Notif gagal dikirim",
+        message: "Permission udah granted tapi notif nggak muncul. Coba install PWA (Add to Home Screen) terus buka dari icon.",
+        okText: "OK",
+        cancelText: ""
       });
-      setTimeout(() => { try{ n.close(); }catch(e){} }, 5000);
-    }catch(e){
-      console.warn("[Notif test] failed:", e);
     }
   }
 
