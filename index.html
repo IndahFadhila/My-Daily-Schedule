@@ -123,15 +123,50 @@
       </button>
     </div>
     <div class="settings-body">
-      <div class="settings-row" id="settingsTestRow" hidden>
+      <div class="settings-row">
         <div class="settings-info">
           <div class="settings-label">Test notifikasi</div>
-          <div class="settings-desc">Kirim notif percobaan buat cek jalan atau nggak</div>
+          <div class="settings-desc" id="testNotifDesc">Kirim notif percobaan buat cek jalan atau nggak</div>
         </div>
         <button class="settings-action" id="testNotifBtn" type="button">Kirim</button>
       </div>
-      <div class="settings-empty" id="settingsNoNotif" hidden>
-        Aktifin <b>Notif</b> dulu di halaman utama, terus balik ke sini buat kirim test.
+
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Suara ceklis</div>
+          <div class="settings-desc">"Ding" tiap ceklis, arpeggio pas semua kelar</div>
+        </div>
+        <label class="settings-toggle" aria-label="Toggle suara ceklis">
+          <input type="checkbox" id="soundToggle">
+          <span class="settings-toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Backup data</div>
+          <div class="settings-desc">Download semua checklist &amp; streak sebagai file JSON</div>
+        </div>
+        <button class="settings-action" id="backupBtn" type="button">Download</button>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Restore data</div>
+          <div class="settings-desc">Upload file backup buat pulihin data</div>
+        </div>
+        <button class="settings-action" id="restoreBtn" type="button">Upload</button>
+        <input type="file" id="restoreFileInput" accept=".json,application/json" hidden>
+      </div>
+
+      <div class="settings-row settings-row-danger">
+        <div class="settings-info">
+          <div class="settings-label">Reset semua data</div>
+          <div class="settings-desc">Hapus semua checklist, streak, dan preferensi</div>
+        </div>
+        <button class="settings-action settings-action-danger" id="resetAllBtn" type="button" aria-label="Reset semua data">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
       </div>
     </div>
   </div>

@@ -727,14 +727,66 @@ li.item.done h2{text-decoration:line-through}
   min-height:38px;
 }
 .settings-action:hover{background:#3A2F55; transform:translateY(-1px)}
-.settings-empty{
-  text-align:center;
-  font-size:.85rem;
-  color:var(--ink-soft);
-  padding:20px 10px;
-  line-height:1.5;
+.settings-action:disabled{
+  background:#E4DFEA; color:var(--ink-mute);
+  cursor:not-allowed;
 }
-.settings-empty b{color:var(--ink); font-weight:800}
+.settings-action:disabled:hover{background:#E4DFEA; transform:none}
+
+/* Toggle switch */
+.settings-toggle{
+  position:relative;
+  display:inline-block;
+  width:44px; height:26px;
+  flex-shrink:0;
+  cursor:pointer;
+}
+.settings-toggle input{
+  position:absolute; opacity:0;
+  width:0; height:0;
+}
+.settings-toggle-track{
+  display:block;
+  width:100%; height:100%;
+  background:#D5D0DC;
+  border-radius:999px;
+  position:relative;
+  transition:background .2s ease;
+}
+.settings-toggle-track::before{
+  content:"";
+  position:absolute;
+  top:3px; left:3px;
+  width:20px; height:20px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(42,33,64,0.2);
+  transition:transform .2s ease;
+}
+.settings-toggle input:checked + .settings-toggle-track{background:var(--ink)}
+.settings-toggle input:checked + .settings-toggle-track::before{transform:translateX(18px)}
+.settings-toggle input:focus-visible + .settings-toggle-track{
+  outline:3px solid rgba(42,33,64,0.55);
+  outline-offset:2px;
+}
+
+/* Danger row + button */
+.settings-row-danger{
+  background:#FDF0F3;
+  border-color:#F5B0C6;
+}
+.settings-action-danger{
+  background:var(--rest);
+  color:#fff;
+  width:38px; height:38px;
+  padding:0;
+  min-height:38px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.settings-action-danger:hover{background:#D75781}
+.settings-action-danger svg{width:16px; height:16px}
 
 /* ---------- credit pill ---------- */
 .credit-pill{

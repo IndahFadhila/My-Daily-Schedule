@@ -99,8 +99,12 @@
     settingsPanel: $("settingsPanel"),
     settingsBackdrop: $("settingsBackdrop"),
     settingsClose: $("settingsClose"),
-    settingsTestRow: $("settingsTestRow"),
-    settingsNoNotif: $("settingsNoNotif"),
+    testNotifDesc: $("testNotifDesc"),
+    soundToggle: $("soundToggle"),
+    backupBtn: $("backupBtn"),
+    restoreBtn: $("restoreBtn"),
+    restoreFileInput: $("restoreFileInput"),
+    resetAllBtn: $("resetAllBtn"),
     scheduleView: $("scheduleView"),
     reportView: $("reportView"),
     timeline: $("timeline"),
@@ -282,8 +286,18 @@
       osc.stop(now + t + (dur || 0.22));
     });
   }
+  // Sound preference (default: on)
+  const SOUND_PREF_KEY = "jadwal_sound_v1";
+  function isSoundEnabled(){
+    try{ return localStorage.getItem(SOUND_PREF_KEY) !== "0"; }
+    catch(e){ return true; }
+  }
+  function setSoundEnabled(v){
+    try{ localStorage.setItem(SOUND_PREF_KEY, v ? "1" : "0"); }catch(e){}
+  }
   // "Ding" pas ceklis — 2 nada cepet
   function playCheckSound(){
+    if(!isSoundEnabled()) return;
     playTones([
       {f: 880,  t: 0,    dur: 0.22, vol: 0.12},  // A5
       {f: 1174, t: 0.06, dur: 0.22, vol: 0.10},  // D6
@@ -291,6 +305,7 @@
   }
   // Arpeggio C major naik pas semua kelar
   function playCelebrationSound(){
+    if(!isSoundEnabled()) return;
     playTones([
       {f: 523.25, t: 0,    dur: 0.4, vol: 0.14},  // C5
       {f: 659.25, t: 0.12, dur: 0.4, vol: 0.14},  // E5
@@ -984,9 +999,14 @@
   let settingsPrevFocus = null;
   function openSettings(){
     settingsPrevFocus = document.activeElement;
-    const on = notifEnabled && notifPermission() === "granted";
-    dom.settingsTestRow.hidden = !on;
-    dom.settingsNoNotif.hidden = on;
+    // Test notif state
+    const notifOn = notifEnabled && notifPermission() === "granted";
+    dom.testNotifBtn.disabled = !notifOn;
+    dom.testNotifDesc.textContent = notifOn
+      ? "Kirim notif percobaan buat cek jalan atau nggak"
+      : "Aktifin Notif di halaman utama dulu, terus balik ke sini";
+    // Sound toggle state
+    dom.soundToggle.checked = isSoundEnabled();
     dom.settingsPanel.hidden = false;
     requestAnimationFrame(() => dom.settingsClose.focus());
     document.addEventListener("keydown", settingsKeyHandler);
@@ -1002,6 +1022,106 @@
   dom.settingsBtn.addEventListener("click", openSettings);
   dom.settingsClose.addEventListener("click", closeSettings);
   dom.settingsBackdrop.addEventListener("click", closeSettings);
+
+  // Sound toggle
+  dom.soundToggle.addEventListener("change", () => {
+    const on = dom.soundToggle.checked;
+    setSoundEnabled(on);
+    if(on) playCheckSound(); // preview
+  });
+
+  // Backup: download semua jadwal_* localStorage jadi file JSON
+  function backupData(){
+    const data = {};
+    for(let i=0; i<localStorage.length; i++){
+      const key = localStorage.key(i);
+      if(key && key.startsWith("jadwal_")){
+        data[key] = localStorage.getItem(key);
+      }
+    }
+    const payload = {
+      app: "Indah's Daily",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: data
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "indahs-daily-backup-" + todayKey() + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  dom.backupBtn.addEventListener("click", backupData);
+
+  // Restore: baca file JSON, konfirmasi, replace semua jadwal_* keys
+  async function restoreData(file){
+    let parsed;
+    try{
+      const text = await file.text();
+      parsed = JSON.parse(text);
+    }catch(e){
+      await showConfirm({
+        icon: "❌", title: "File nggak valid",
+        message: "File-nya bukan JSON atau rusak.",
+        okText: "OK", cancelText: ""
+      });
+      return;
+    }
+    if(!parsed || typeof parsed.data !== "object" || parsed.app !== "Indah's Daily"){
+      await showConfirm({
+        icon: "❌", title: "Format nggak cocok",
+        message: "File ini bukan backup Indah's Daily yang valid.",
+        okText: "OK", cancelText: ""
+      });
+      return;
+    }
+    const ok = await showConfirm({
+      icon: "⚠️", title: "Restore backup?",
+      message: "Data yang sekarang bakal di-replace sama data dari file. Yakin lanjut?",
+      okText: "Ya, restore", cancelText: "Batal"
+    });
+    if(!ok) return;
+    // Clear existing jadwal_* keys
+    const existing = [];
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith("jadwal_")) existing.push(k);
+    }
+    existing.forEach(k => localStorage.removeItem(k));
+    // Load new data
+    Object.keys(parsed.data).forEach(k => {
+      try{ localStorage.setItem(k, parsed.data[k]); }catch(e){}
+    });
+    location.reload();
+  }
+  dom.restoreBtn.addEventListener("click", () => dom.restoreFileInput.click());
+  dom.restoreFileInput.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(file) restoreData(file);
+    e.target.value = ""; // reset supaya bisa pilih file yg sama lagi
+  });
+
+  // Reset all: hapus semua jadwal_* localStorage, reload
+  async function resetAllData(){
+    const ok = await showConfirm({
+      icon: "🗑️", title: "Hapus semua data?",
+      message: "Checklist, streak, dan preferensi bakal hilang. Nggak bisa di-undo. Backup dulu kalau perlu!",
+      okText: "Ya, hapus semua", cancelText: "Batal"
+    });
+    if(!ok) return;
+    const keys = [];
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith("jadwal_")) keys.push(k);
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
+  dom.resetAllBtn.addEventListener("click", resetAllData);
 
   // Init notif state: nyala kalau user udah pernah aktifin & permission masih granted.
   if(notifSupported()){
