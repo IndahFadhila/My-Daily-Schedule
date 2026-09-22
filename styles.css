@@ -286,17 +286,26 @@ ol.timeline{
   margin:0; padding:0;
   position:relative;
 }
+/* Garis jadi jejak "hari": dawn gold di atas -> peach -> pink -> purple ->
+   indigo di bawah, dengan glow lembut supaya berasa jadi bagian cerita,
+   bukan cuma pembatas. */
 ol.timeline::before{
   content:"";
   position:absolute;
-  left:84px; top:14px; bottom:14px;
-  width:2px;
-  border-radius:2px;
+  left:83px; top:8px; bottom:8px;
+  width:4px;
+  border-radius:4px;
   background:linear-gradient(180deg,
-    rgba(42,33,64,0.2) 0%,
-    rgba(42,33,64,0.15) 25%,
-    rgba(255,255,255,0.18) 65%,
-    rgba(255,255,255,0.35) 100%);
+    #FFE79C 0%,
+    #FFC48A 20%,
+    #E88AA3 42%,
+    #A98AE0 62%,
+    #7C82C9 82%,
+    rgba(255,255,255,0.55) 100%);
+  box-shadow:
+    0 0 12px rgba(255,231,156,0.35),
+    0 0 5px rgba(255,255,255,0.55);
+  opacity:.92;
   pointer-events:none;
 }
 li.item{
@@ -651,7 +660,7 @@ li.item.done h2{text-decoration:line-through}
 /* ---------- responsive ---------- */
 @media (max-width: 400px){
   main{padding:18px 12px 32px}
-  ol.timeline::before{left:70px}
+  ol.timeline::before{left:69px; width:3px}
   li.item{grid-template-columns:48px 20px 1fr; column-gap:12px}
   .time-label{padding-top:14px}
   .time-label span{font-size:.68rem; padding:2px 8px}
