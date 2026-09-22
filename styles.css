@@ -599,30 +599,39 @@ li.item.done h2{text-decoration:line-through}
   text-align:center;
 }
 
-/* ---------- settings gear button in header ---------- */
+/* ---------- footer row: credit pill (center) + gear btn (mojok kanan) ---------- */
+.footer-row{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-top:14px;
+  min-height:40px;
+}
+.footer-row .credit-pill{margin:0 auto}
 .settings-btn{
   position:absolute;
-  top:calc(14px + env(safe-area-inset-top,0px));
-  right:16px;
-  width:36px; height:36px;
+  right:4px;
+  top:50%;
+  transform:translateY(-50%);
+  width:34px; height:34px;
   border-radius:50%;
-  border:1px solid var(--line);
-  background:rgba(255,255,255,0.55);
-  color:var(--ink);
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.14);
+  color:rgba(255,255,255,0.9);
   cursor:pointer;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
   transition:background .15s ease, transform .15s ease;
-  z-index:1;
 }
 .settings-btn:hover{
-  background:rgba(255,255,255,0.85);
-  transform:translateY(-1px);
+  background:rgba(255,255,255,0.25);
+  transform:translateY(calc(-50% - 1px));
 }
-.settings-btn svg{width:18px; height:18px}
+.settings-btn svg{width:17px; height:17px}
 
 /* ---------- settings panel modal ---------- */
 .settings-panel{
