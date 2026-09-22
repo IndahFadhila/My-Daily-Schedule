@@ -29,6 +29,15 @@
     pray:"var(--pray-bg)", work:"var(--work-bg)", rest:"var(--rest-bg)",
     move:"var(--move-bg)", fun:"var(--fun-bg)", sleep:"var(--sleep-bg)",
   };
+  // Solid SVG icon per kategori (buat legend day-chart)
+  const CAT_ICONS = {
+    pray:  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>',
+    work:  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 0h-4V4h4z"/></svg>',
+    rest:  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8v9a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-2h1a4 4 0 1 0 0-8zm14 3h1a2 2 0 0 1 0 4h-1z"/></svg>',
+    move:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+    fun:   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-4 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm8 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-4 8a5 5 0 0 1-4.58-3h9.15A5 5 0 0 1 12 18z"/></svg>',
+    sleep: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  };
 
   const mk = (start,end,icon,title,desc,cat) => ({start,end,icon,title,desc,cat});
 
@@ -882,11 +891,22 @@
       svg.appendChild(t);
     });
 
-    // Titik "sekarang" di outer ring
+    // Jarum jam: garis dari edge donut hole ke inner outer ring
     const now = new Date();
     const nowMin = now.getHours()*60 + now.getMinutes();
     const nowAngle = (nowMin/1440)*360 - 90;
     const nowRad = nowAngle * Math.PI / 180;
+    const hand = document.createElementNS(svgNS, "line");
+    hand.setAttribute("x1", cx + (holeR + 3) * Math.cos(nowRad));
+    hand.setAttribute("y1", cy + (holeR + 3) * Math.sin(nowRad));
+    hand.setAttribute("x2", cx + (r - 3) * Math.cos(nowRad));
+    hand.setAttribute("y2", cy + (r - 3) * Math.sin(nowRad));
+    hand.setAttribute("stroke", "#2A2140");
+    hand.setAttribute("stroke-width", "2.5");
+    hand.setAttribute("stroke-linecap", "round");
+    svg.appendChild(hand);
+
+    // Titik "sekarang" di outer ring
     const dotR = r + 2;
     const dot = document.createElementNS(svgNS, "circle");
     dot.setAttribute("cx", cx + dotR * Math.cos(nowRad));
@@ -984,7 +1004,8 @@
       const icon = document.createElement("span");
       icon.className = "day-chart-legend-icon";
       icon.setAttribute("aria-hidden", "true");
-      icon.textContent = item.icon;
+      icon.style.color = "var(--" + item.cat + ")";
+      icon.innerHTML = CAT_ICONS[item.cat] || "";
       const name = document.createElement("span");
       name.className = "day-chart-legend-name";
       name.textContent = item.title;

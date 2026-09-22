@@ -574,9 +574,15 @@ li.item.done h2{text-decoration:line-through}
   white-space:nowrap;
 }
 .day-chart-legend-icon{
-  font-size:1rem;
-  text-align:center;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   flex-shrink:0;
+}
+.day-chart-legend-icon svg{
+  width:16px;
+  height:16px;
+  display:block;
 }
 .day-chart-legend-name{
   color:var(--ink);
