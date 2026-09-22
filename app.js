@@ -606,6 +606,11 @@
       return false;
     }
     opts = opts || {};
+    // Set app icon (🌠) kalau caller nggak override.
+    // Tanpa ini, Chrome fallback ke huruf "i" default.
+    const iconUrl = new URL("icon.svg", location.href).href;
+    if(!opts.icon)  opts.icon  = iconUrl;
+    if(!opts.badge) opts.badge = iconUrl;
     // Coba SW dulu (mobile-compatible)
     try{
       if('serviceWorker' in navigator){
