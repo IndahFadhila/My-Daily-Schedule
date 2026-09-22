@@ -246,6 +246,95 @@
     return "🌤️";
   }
 
+  // ---------- sound (web audio, no external file) ----------
+  let _audioCtx = null;
+  function getAudioCtx(){
+    try{
+      if(!_audioCtx){
+        _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if(_audioCtx.state === "suspended") _audioCtx.resume();
+      return _audioCtx;
+    }catch(e){ return null; }
+  }
+  function playTones(notes){
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    notes.forEach(({f, t, dur, vol}) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0, now + t);
+      gain.gain.linearRampToValueAtTime(vol || 0.12, now + t + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + t + (dur || 0.22));
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + t);
+      osc.stop(now + t + (dur || 0.22));
+    });
+  }
+  // "Ding" pas ceklis — 2 nada cepet
+  function playCheckSound(){
+    playTones([
+      {f: 880,  t: 0,    dur: 0.22, vol: 0.12},  // A5
+      {f: 1174, t: 0.06, dur: 0.22, vol: 0.10},  // D6
+    ]);
+  }
+  // Arpeggio C major naik pas semua kelar
+  function playCelebrationSound(){
+    playTones([
+      {f: 523.25, t: 0,    dur: 0.4, vol: 0.14},  // C5
+      {f: 659.25, t: 0.12, dur: 0.4, vol: 0.14},  // E5
+      {f: 783.99, t: 0.24, dur: 0.4, vol: 0.14},  // G5
+      {f: 1046.5, t: 0.36, dur: 0.5, vol: 0.16},  // C6
+    ]);
+  }
+
+  // ---------- celebration (all done) ----------
+  const CELEBRATE_KEY = "jadwal_celebrated_v1";
+  function loadCelebrated(){
+    try{
+      const raw = localStorage.getItem(CELEBRATE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveCelebrated(map){
+    try{ localStorage.setItem(CELEBRATE_KEY, JSON.stringify(map)); }catch(e){}
+  }
+  function celebrateFlagKey(schedKey){ return schedKey + "_" + todayKey(); }
+  function hasCelebratedToday(schedKey){
+    return !!loadCelebrated()[celebrateFlagKey(schedKey)];
+  }
+  function markCelebrated(schedKey){
+    // Simpan flag hari ini, buang entry hari lain
+    const today = todayKey();
+    const map = loadCelebrated();
+    const fresh = {};
+    Object.keys(map).forEach(k => {
+      if(k.endsWith("_" + today)) fresh[k] = map[k];
+    });
+    fresh[celebrateFlagKey(schedKey)] = true;
+    saveCelebrated(fresh);
+  }
+  async function checkAndCelebrate(schedKey){
+    const items = SCHEDULES[schedKey].items;
+    const total = items.length;
+    const done = Object.values(checkedState).filter(Boolean).length;
+    if(done !== total || total === 0) return;
+    if(hasCelebratedToday(schedKey)) return;
+    markCelebrated(schedKey);
+    playCelebrationSound();
+    await showConfirm({
+      icon: "🎉",
+      title: "Semua selesai!",
+      message: "Hari ini kamu kelar seluruh kegiatan. Keep shining ⭐",
+      okText: "Yeay!",
+      cancelText: ""
+    });
+  }
+
   // ---------- state ----------
   // Fresh helper: today's schedule key. Dipanggil ulang tiap kali biar
   // tetap akurat kalau app dibiarin terbuka nyeberang tengah malam.
@@ -388,6 +477,10 @@
         saveChecked(schedKey, checkedState);
         li.classList.toggle("done", cb.checked);
         updateProgress();
+        if(cb.checked){
+          playCheckSound();
+          checkAndCelebrate(schedKey);
+        }
       });
 
       meta.append(dur, label);
@@ -652,6 +745,10 @@
       if(cb) cb.checked = value;
     });
     updateProgress();
+    if(value){
+      playCheckSound();
+      checkAndCelebrate(schedKey);
+    }
   }
 
   function checkAll(){ setAllChecked(true); }
