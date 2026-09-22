@@ -1,4 +1,4 @@
-# Jadwal Harianku
+# Indah's Daily
 
 Aplikasi jadwal harian pribadi. HTML + CSS + JS vanilla, tanpa framework,
 tanpa build step.

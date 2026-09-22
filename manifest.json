@@ -1,6 +1,6 @@
 {
-  "name": "Jadwal Harianku",
-  "short_name": "Jadwal",
+  "name": "Indah's Daily",
+  "short_name": "Indah's Daily",
   "description": "Jadwal harian pribadi: weekday, weekend, dan laporan progres. Otomatis nunjukin kegiatan sekarang.",
   "start_url": "./",
   "scope": "./",
