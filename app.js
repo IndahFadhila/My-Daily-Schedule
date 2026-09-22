@@ -995,21 +995,18 @@
     SCHEDULES[todaySchedKey].items.forEach(item => {
       const row = document.createElement("div");
       row.className = "day-chart-legend-item";
-      const dot = document.createElement("span");
-      dot.className = "day-chart-legend-dot";
-      dot.style.background = "var(--" + item.cat + ")";
-      const time = document.createElement("span");
-      time.className = "day-chart-legend-time";
-      time.textContent = item.start;
       const icon = document.createElement("span");
       icon.className = "day-chart-legend-icon";
       icon.setAttribute("aria-hidden", "true");
       icon.style.color = "var(--" + item.cat + ")";
       icon.innerHTML = CAT_ICONS[item.cat] || "";
+      const time = document.createElement("span");
+      time.className = "day-chart-legend-time";
+      time.textContent = item.start;
       const name = document.createElement("span");
       name.className = "day-chart-legend-name";
       name.textContent = item.title;
-      row.append(dot, time, icon, name);
+      row.append(icon, time, name);
       legend.appendChild(row);
     });
     cPie.appendChild(legend);
