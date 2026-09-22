@@ -687,9 +687,9 @@
       return false;
     }
     opts = opts || {};
-    // Notif icon: vector star mengisi canvas (bukan emoji kecil dgn bg box).
-    // Home screen icon tetap pake icon.svg (🌠 emoji).
-    const iconUrl = new URL("notif-icon.svg", location.href).href;
+    // Notif icon: 🌸 emoji. Query string ?v=N buat cache-bust
+    // (Android/SW cache icon notif agresif - bump v tiap ganti icon).
+    const iconUrl = new URL("notif-icon.svg?v=2", location.href).href;
     if(!opts.icon)  opts.icon  = iconUrl;
     if(!opts.badge) opts.badge = iconUrl;
     // Coba SW dulu (mobile-compatible)
