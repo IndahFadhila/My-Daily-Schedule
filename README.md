@@ -1,7 +1,11 @@
 # Indah's Daily
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Aplikasi jadwal harian pribadi. HTML + CSS + JS vanilla, tanpa framework,
 tanpa build step.
+
+Made by [**Indah Fadhila**](https://github.com/IndahFadhila).
 
 ## Fitur
 
@@ -66,6 +70,23 @@ Kategori: `pray`, `work`, `rest`, `move`, `fun`, `sleep`. Warna tiap kategori
 diatur di blok `:root` di `styles.css`.
 
 Nambah tab baru: tambah key di `SCHEDULES` (di `app.js`) dengan `label` + `items`.
+
+## Lisensi & Atribusi
+
+Rilis di bawah [MIT License](LICENSE) — silakan pakai, fork, atau modifikasi,
+**tapi tetap tolong cantumkan credit** ke pemilik asli:
+
+```
+Copyright (c) 2026 Indah Fadhila
+https://github.com/IndahFadhila/My-Daily-Schedule
+```
+
+Kalau kamu re-publish/deploy versi hasil fork, jangan hapus:
+- File `LICENSE`
+- Comment banner copyright di source file (`index.html`, `styles.css`, `app.js`, `sw.js`)
+- Baris credit di footer app (link ke author + source)
+
+Bug report, PR, dan feedback welcome di [GitHub Issues](https://github.com/IndahFadhila/My-Daily-Schedule/issues).
 
 ## Catatan teknis
 

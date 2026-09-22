@@ -1,3 +1,9 @@
+/*!
+ * Indah's Daily
+ * Copyright (c) 2026 Indah Fadhila
+ * Source: https://github.com/IndahFadhila/My-Daily-Schedule
+ * Licensed under MIT (see LICENSE)
+ */
 (function(){
   'use strict';
 

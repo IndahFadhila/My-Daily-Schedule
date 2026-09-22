@@ -1,8 +1,15 @@
-// Service worker buat Jadwal Harianku.
+/*!
+ * Indah's Daily
+ * Copyright (c) 2026 Indah Fadhila
+ * Source: https://github.com/IndahFadhila/My-Daily-Schedule
+ * Licensed under MIT (see LICENSE)
+ */
+
+// Service worker buat Indah's Daily.
 // Strategy: cache-first buat asset app-shell, network-first buat rest.
 // Kalau update file, bump CACHE_VERSION supaya user dapet versi baru.
 
-const CACHE_VERSION = "jadwal-v9";
+const CACHE_VERSION = "jadwal-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
