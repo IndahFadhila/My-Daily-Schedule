@@ -962,12 +962,36 @@
     dom.reportView.appendChild(c1);
 
     // --- 24 Jam Kegiatan ---
+    const todaySchedKey = todayScheduleKey();
     const cPie = makeReportCard(REPORT_ICONS.clock, "24 Jam Kegiatan");
-    cPie.appendChild(renderDayChart(todayScheduleKey()));
+    cPie.appendChild(renderDayChart(todaySchedKey));
     const pieHint = document.createElement("div");
-    pieHint.className = "report-sub day-chart-hint";
-    pieHint.textContent = "Distribusi kegiatan hari ini dalam 24 jam. Titik putih = jam sekarang.";
+    pieHint.className = "day-chart-hint";
+    pieHint.textContent = "Titik putih = jam sekarang";
     cPie.appendChild(pieHint);
+    // Legend list dengan detail per kegiatan
+    const legend = document.createElement("div");
+    legend.className = "day-chart-legend";
+    SCHEDULES[todaySchedKey].items.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "day-chart-legend-item";
+      const dot = document.createElement("span");
+      dot.className = "day-chart-legend-dot";
+      dot.style.background = "var(--" + item.cat + ")";
+      const time = document.createElement("span");
+      time.className = "day-chart-legend-time";
+      time.textContent = item.start;
+      const icon = document.createElement("span");
+      icon.className = "day-chart-legend-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.textContent = item.icon;
+      const name = document.createElement("span");
+      name.className = "day-chart-legend-name";
+      name.textContent = item.title;
+      row.append(dot, time, icon, name);
+      legend.appendChild(row);
+    });
+    cPie.appendChild(legend);
     dom.reportView.appendChild(cPie);
 
     // --- 7 Hari Terakhir ---
