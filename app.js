@@ -232,12 +232,12 @@
     return "Yuk tanem benihnya hari ini!";
   }
   function streakEmoji(streak){
-    if(streak >= 30) return "🌺";
-    if(streak >= 14) return "🌸";
-    if(streak >= 7)  return "🌼";
-    if(streak >= 3)  return "🌷";
-    if(streak >= 1)  return "🌿";
-    return "🌱";
+    if(streak >= 30) return "🌟";
+    if(streak >= 14) return "⭐";
+    if(streak >= 7)  return "✨";
+    if(streak >= 3)  return "💫";
+    if(streak >= 1)  return "🌙";
+    return "🌤️";
   }
 
   // ---------- state ----------
