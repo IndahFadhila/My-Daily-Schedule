@@ -689,7 +689,7 @@
     opts = opts || {};
     // Notif icon: 🌸 emoji. Query string ?v=N buat cache-bust
     // (Android/SW cache icon notif agresif - bump v tiap ganti icon).
-    const iconUrl = new URL("notif-icon.svg?v=2", location.href).href;
+    const iconUrl = new URL("notif-icon.svg?v=3", location.href).href;
     if(!opts.icon)  opts.icon  = iconUrl;
     if(!opts.badge) opts.badge = iconUrl;
     // Coba SW dulu (mobile-compatible)
