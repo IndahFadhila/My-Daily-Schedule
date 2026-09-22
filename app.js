@@ -94,6 +94,7 @@
     checkAllBtn: $("checkAllBtn"),
     clearAllBtn: $("clearAllBtn"),
     notifBtn: $("notifBtn"),
+    testNotifBtn: $("testNotifBtn"),
     scheduleView: $("scheduleView"),
     reportView: $("reportView"),
     timeline: $("timeline"),
@@ -571,17 +572,35 @@
     dom.notifBtn.title = on
       ? "Notifikasi aktif - klik buat matiin"
       : "Klik buat aktifin notifikasi kegiatan";
+    // Tombol Test cuma muncul kalau notif ON
+    dom.testNotifBtn.hidden = !on;
+  }
+
+  // Trigger fake activity notif buat testing - pake kegiatan yang lagi berlangsung
+  function fireTestNotif(){
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    const schedKey = todayScheduleKey();
+    const items = SCHEDULES[schedKey].items;
+    const idx = findCurrentIndex(items, nowMin);
+    fireActivityNotif(items[idx]);
   }
   function fireActivityNotif(activity){
-    if(!notifEnabled || notifPermission() !== "granted") return;
+    if(!notifEnabled || notifPermission() !== "granted"){
+      console.warn("[Notif] skip - enabled:", notifEnabled, "perm:", notifPermission());
+      return;
+    }
     try{
+      // Icon dropped (data URI SVG kadang di-reject sama Chrome mobile).
+      // Notif otomatis pake PWA icon dari manifest kalau di-install sebagai PWA.
       const n = new Notification("Waktunya " + activity.title, {
         body: activity.desc,
-        icon: emojiIcon(activity.icon),
         tag: "jadwal-activity",
       });
       setTimeout(() => { try{ n.close(); }catch(e){} }, 10000);
-    }catch(e){}
+    }catch(e){
+      console.warn("[Notif] failed:", e);
+    }
   }
   async function toggleNotif(){
     if(!notifSupported()){
@@ -621,11 +640,12 @@
     try{
       const n = new Notification("Notifikasi aktif!", {
         body: "Kamu bakal dapet notif tiap ganti kegiatan.",
-        icon: emojiIcon("🌤️"),
         tag: "jadwal-test"
       });
       setTimeout(() => { try{ n.close(); }catch(e){} }, 5000);
-    }catch(e){}
+    }catch(e){
+      console.warn("[Notif test] failed:", e);
+    }
   }
 
   // ---------- render report ----------
@@ -830,6 +850,7 @@
   dom.checkAllBtn.addEventListener("click", checkAll);
   dom.clearAllBtn.addEventListener("click", clearAll);
   dom.notifBtn.addEventListener("click", toggleNotif);
+  dom.testNotifBtn.addEventListener("click", fireTestNotif);
 
   // Init notif state: nyala kalau user udah pernah aktifin & permission masih granted.
   if(notifSupported()){
