@@ -13,6 +13,7 @@ tanpa build step.
 - **Ke sekarang** untuk lompat ke kegiatan yang lagi berjalan
 - Progress bar harian dari checklist
 - Tab **Laporan**: hari ini (%), 7 hari terakhir (bar chart), streak (hari beruntun ≥50%)
+- **Notifikasi browser** saat ganti kegiatan (butuh permission, disimpan pref)
 - Handle slot yang lewat tengah malam (contoh: Tidur 22:00 - 05:00)
 - History disimpan 30 hari (buat laporan/streak), data lebih lama auto-dibersihin
 - Favicon SVG dari emoji 🌤️ (built-in, nggak butuh file terpisah)
@@ -32,11 +33,25 @@ Buka `index.html` langsung di browser. Nggak butuh server.
 
 ```
 jadwal-harian/
-├── index.html    # markup
-├── styles.css    # semua styling
-├── app.js        # semua logic + data jadwal
+├── index.html      # markup + PWA meta + SW register
+├── styles.css      # semua styling
+├── app.js          # semua logic + data jadwal
+├── manifest.json   # PWA manifest (nama, icon, standalone)
+├── sw.js           # service worker (offline cache)
+├── icon.svg        # icon PWA (sun+cloud+stars, sky gradient)
 └── README.md
 ```
+
+## PWA / Install ke HP
+
+Situs ini installable sebagai PWA:
+- **Android Chrome/Edge**: buka situs → menu → "Add to Home Screen" atau "Install app". Bakal jadi standalone app dengan icon dedicated.
+- **iOS Safari**: buka situs → Share → "Add to Home Screen". Buka dari homescreen → jalan standalone.
+- **Desktop Chrome/Edge**: icon install muncul di address bar.
+
+Notifikasi jalan selama PWA masih running (foreground/background). Kalau di-swipe close dari recent apps, notif berhenti sampai app dibuka lagi. Nggak butuh server (murni client-side).
+
+Offline: setelah kunjungan pertama, service worker cache semua asset. Bisa dibuka tanpa internet.
 
 ## Kustomisasi jadwal
 

@@ -7,6 +7,9 @@
   const TICK_MS = 30000;
   const DATE_CHECK_MS = 60000;
   const STREAK_THRESHOLD = 50;
+  const NOTIF_PREF_KEY = "jadwal_notif_v1";
+  const BELL_ON_SVG = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+  const BELL_OFF_SVG = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.888 17.888 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><path d="m2 2 20 20"/></svg>';
 
   const CATS = {
     pray:  {name:"Ibadah",     color:"var(--pray)"},
@@ -84,6 +87,7 @@
     jumpBtn: $("jumpBtn"),
     checkAllBtn: $("checkAllBtn"),
     clearAllBtn: $("clearAllBtn"),
+    notifBtn: $("notifBtn"),
     scheduleView: $("scheduleView"),
     reportView: $("reportView"),
     timeline: $("timeline"),
@@ -218,18 +222,21 @@
     }
     return streak;
   }
+  // Metafora tumbuh: benih -> daun -> kuncup -> bunga mekar -> bunga besar -> pohon
   function streakMessage(streak){
-    if(streak >= 14) return "Legendaris! Kamu lagi on fire.";
-    if(streak >= 7)  return "Seminggu penuh! Konsisten banget.";
-    if(streak >= 3)  return "Keren, tetap semangat!";
-    if(streak >= 1)  return "Bagus, terus lanjut.";
-    return "Yuk mulai hari ini!";
+    if(streak >= 30) return "Udah jadi pohon! Legendaris banget.";
+    if(streak >= 14) return "Bunga mekar penuh, kamu makin kuat.";
+    if(streak >= 7)  return "Mekar! Seminggu penuh konsisten.";
+    if(streak >= 3)  return "Mulai kuncup, dikit lagi mekar!";
+    if(streak >= 1)  return "Baru tumbuh, jangan berhenti.";
+    return "Yuk tanem benihnya hari ini!";
   }
   function streakEmoji(streak){
-    if(streak >= 14) return "🎉";
-    if(streak >= 7)  return "🌟";
-    if(streak >= 3)  return "🔥";
-    if(streak >= 1)  return "💫";
+    if(streak >= 30) return "🌺";
+    if(streak >= 14) return "🌸";
+    if(streak >= 7)  return "🌼";
+    if(streak >= 3)  return "🌷";
+    if(streak >= 1)  return "🌿";
     return "🌱";
   }
 
@@ -244,6 +251,8 @@
   let checkedState = {};
   let lastDateKey = todayKey();
   let previousFocus = null;
+  let notifEnabled = false;
+  let lastActivityTitle = null;
 
   // Di Laporan, SEKARANG & progress harus ikut hari ini (bukan tab terakhir).
   function activeScheduleKey(){
@@ -428,6 +437,96 @@
       const curLi = dom.timeline.querySelector('li.item[data-idx="' + idx + '"]');
       if(curLi) curLi.classList.add("current");
     }
+
+    // Notifikasi: pake schedule hari ini (bukan tab yang lagi dibuka).
+    // Bandingin pake title biar sleep weekday -> sleep weekend nggak trigger notif.
+    const todayKey_ = todayScheduleKey();
+    const todayItems = SCHEDULES[todayKey_].items;
+    const todayIdx = findCurrentIndex(todayItems, nowMin);
+    const todayCur = todayItems[todayIdx];
+    if(lastActivityTitle !== null && lastActivityTitle !== todayCur.title){
+      fireActivityNotif(todayCur);
+    }
+    lastActivityTitle = todayCur.title;
+  }
+
+  // ---------- notifications ----------
+  function notifSupported(){ return "Notification" in window; }
+  function notifPermission(){ return notifSupported() ? Notification.permission : "unsupported"; }
+  function loadNotifPref(){
+    try{ return localStorage.getItem(NOTIF_PREF_KEY) === "1"; }catch(e){ return false; }
+  }
+  function saveNotifPref(v){
+    try{ localStorage.setItem(NOTIF_PREF_KEY, v ? "1" : "0"); }catch(e){}
+  }
+  function emojiIcon(emoji){
+    return "data:image/svg+xml;utf8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">' + emoji + '</text></svg>'
+    );
+  }
+  function updateNotifBtnUI(){
+    const on = notifEnabled && notifPermission() === "granted";
+    dom.notifBtn.innerHTML = (on ? BELL_ON_SVG : BELL_OFF_SVG) + " Notif";
+    dom.notifBtn.classList.toggle("primary", on);
+    dom.notifBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    dom.notifBtn.title = on
+      ? "Notifikasi aktif - klik buat matiin"
+      : "Klik buat aktifin notifikasi kegiatan";
+  }
+  function fireActivityNotif(activity){
+    if(!notifEnabled || notifPermission() !== "granted") return;
+    try{
+      const n = new Notification("Waktunya " + activity.title, {
+        body: activity.desc,
+        icon: emojiIcon(activity.icon),
+        tag: "jadwal-activity",
+      });
+      setTimeout(() => { try{ n.close(); }catch(e){} }, 10000);
+    }catch(e){}
+  }
+  async function toggleNotif(){
+    if(!notifSupported()){
+      await showConfirm({
+        icon: "😕",
+        title: "Browser nggak dukung notifikasi",
+        message: "Fitur ini butuh Notification API. Coba pakai browser lain (Chrome/Firefox/Edge terbaru).",
+        okText: "OK",
+        cancelText: ""
+      });
+      return;
+    }
+    if(notifEnabled){
+      notifEnabled = false;
+      saveNotifPref(false);
+      updateNotifBtnUI();
+      return;
+    }
+    const perm = notifPermission();
+    if(perm === "denied"){
+      await showConfirm({
+        icon: "🔕",
+        title: "Notifikasi diblokir",
+        message: "Kamu udah blokir notifikasi buat site ini. Buka setting browser (icon gembok di address bar), aktifin Notifications, terus refresh.",
+        okText: "OK",
+        cancelText: ""
+      });
+      return;
+    }
+    if(perm === "default"){
+      const result = await Notification.requestPermission();
+      if(result !== "granted") return;
+    }
+    notifEnabled = true;
+    saveNotifPref(true);
+    updateNotifBtnUI();
+    try{
+      const n = new Notification("Notifikasi aktif!", {
+        body: "Kamu bakal dapet notif tiap ganti kegiatan.",
+        icon: emojiIcon("🌤️"),
+        tag: "jadwal-test"
+      });
+      setTimeout(() => { try{ n.close(); }catch(e){} }, 5000);
+    }catch(e){}
   }
 
   // ---------- render report ----------
@@ -571,7 +670,13 @@
       dom.modalTitle.textContent = opts.title || "";
       dom.modalMsg.textContent = opts.message || "";
       dom.modalOk.textContent = opts.okText || "Ya";
-      dom.modalCancel.textContent = opts.cancelText || "Batal";
+      // cancelText === "" -> sembunyiin (modal jadi info-only, cuma tombol OK)
+      if(opts.cancelText === ""){
+        dom.modalCancel.hidden = true;
+      } else {
+        dom.modalCancel.hidden = false;
+        dom.modalCancel.textContent = opts.cancelText || "Batal";
+      }
 
       previousFocus = document.activeElement;
       dom.modalBackdrop.hidden = false;
@@ -621,6 +726,17 @@
   });
   dom.checkAllBtn.addEventListener("click", checkAll);
   dom.clearAllBtn.addEventListener("click", clearAll);
+  dom.notifBtn.addEventListener("click", toggleNotif);
+
+  // Init notif state: nyala kalau user udah pernah aktifin & permission masih granted.
+  if(notifSupported()){
+    if(loadNotifPref() && notifPermission() === "granted"){
+      notifEnabled = true;
+    }
+  } else {
+    dom.notifBtn.hidden = true;
+  }
+  updateNotifBtnUI();
 
   document.addEventListener("visibilitychange", () => {
     if(!document.hidden){
