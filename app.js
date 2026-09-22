@@ -794,9 +794,128 @@
   // ---------- render report ----------
   const REPORT_ICONS = {
     today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
     flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
   };
+
+  // Pie chart 24-jam: kegiatan hari ini sebagai slice bewarna
+  function renderDayChart(schedKey){
+    const items = SCHEDULES[schedKey].items;
+    const cx = 100, cy = 100, r = 82, holeR = 44;
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 200 200");
+    svg.setAttribute("class", "day-chart-svg");
+    svg.setAttribute("aria-hidden", "true");
+
+    // Background ring (light bg untuk contrast slice)
+    const bg = document.createElementNS(svgNS, "circle");
+    bg.setAttribute("cx", cx);
+    bg.setAttribute("cy", cy);
+    bg.setAttribute("r", r);
+    bg.setAttribute("fill", "#F5F1F9");
+    svg.appendChild(bg);
+
+    // Ambil warna aktual dari CSS var
+    const rootStyle = getComputedStyle(document.documentElement);
+    const catColor = (cat) => rootStyle.getPropertyValue("--" + cat).trim() || "#ccc";
+
+    // Draw slice dari startMin ke endMin (same day, no wrap)
+    const drawSlice = (startMin, endMin, color) => {
+      if(endMin <= startMin) return;
+      const toAngle = (min) => (min / 1440) * 360 - 90; // 0 min = top
+      const sRad = toAngle(startMin) * Math.PI / 180;
+      const eRad = toAngle(endMin) * Math.PI / 180;
+      const x1 = cx + r * Math.cos(sRad);
+      const y1 = cy + r * Math.sin(sRad);
+      const x2 = cx + r * Math.cos(eRad);
+      const y2 = cy + r * Math.sin(eRad);
+      const largeArc = (endMin - startMin) > 720 ? 1 : 0;
+      const path = document.createElementNS(svgNS, "path");
+      path.setAttribute("d",
+        "M " + cx + " " + cy +
+        " L " + x1 + " " + y1 +
+        " A " + r + " " + r + " 0 " + largeArc + " 1 " + x2 + " " + y2 + " Z"
+      );
+      path.setAttribute("fill", color);
+      path.setAttribute("stroke", "#fff");
+      path.setAttribute("stroke-width", "1");
+      svg.appendChild(path);
+    };
+
+    items.forEach(item => {
+      const color = catColor(item.cat);
+      const s = toMinutes(item.start);
+      let e = toMinutes(item.end);
+      if(e <= s){
+        // Slot lewat midnight - split jadi 2 slice
+        drawSlice(s, 1440, color);
+        drawSlice(0, e, color);
+      } else {
+        drawSlice(s, e, color);
+      }
+    });
+
+    // Donut hole di tengah
+    const hole = document.createElementNS(svgNS, "circle");
+    hole.setAttribute("cx", cx);
+    hole.setAttribute("cy", cy);
+    hole.setAttribute("r", holeR);
+    hole.setAttribute("fill", "#fff");
+    svg.appendChild(hole);
+
+    // Jam markers (0/6/12/18)
+    const markers = [
+      {label:"0",  x:cx,     y:cy - r - 6, anchor:"middle"},
+      {label:"6",  x:cx + r + 10, y:cy + 3,  anchor:"start"},
+      {label:"12", x:cx,     y:cy + r + 14, anchor:"middle"},
+      {label:"18", x:cx - r - 10, y:cy + 3,  anchor:"end"},
+    ];
+    markers.forEach(m => {
+      const t = document.createElementNS(svgNS, "text");
+      t.setAttribute("x", m.x);
+      t.setAttribute("y", m.y);
+      t.setAttribute("text-anchor", m.anchor);
+      t.setAttribute("class", "day-chart-hour");
+      t.textContent = m.label;
+      svg.appendChild(t);
+    });
+
+    // Titik "sekarang" di outer ring
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    const nowAngle = (nowMin/1440)*360 - 90;
+    const nowRad = nowAngle * Math.PI / 180;
+    const dotR = r + 2;
+    const dot = document.createElementNS(svgNS, "circle");
+    dot.setAttribute("cx", cx + dotR * Math.cos(nowRad));
+    dot.setAttribute("cy", cy + dotR * Math.sin(nowRad));
+    dot.setAttribute("r", "5");
+    dot.setAttribute("fill", "#fff");
+    dot.setAttribute("stroke", "#2A2140");
+    dot.setAttribute("stroke-width", "2");
+    svg.appendChild(dot);
+
+    // Center: jam sekarang + label
+    const timeLabel = document.createElementNS(svgNS, "text");
+    timeLabel.setAttribute("x", cx);
+    timeLabel.setAttribute("y", cy - 2);
+    timeLabel.setAttribute("text-anchor", "middle");
+    timeLabel.setAttribute("class", "day-chart-time");
+    timeLabel.textContent = pad2(now.getHours()) + ":" + pad2(now.getMinutes());
+    svg.appendChild(timeLabel);
+
+    const subLabel = document.createElementNS(svgNS, "text");
+    subLabel.setAttribute("x", cx);
+    subLabel.setAttribute("y", cy + 13);
+    subLabel.setAttribute("text-anchor", "middle");
+    subLabel.setAttribute("class", "day-chart-sub");
+    subLabel.textContent = "SEKARANG";
+    svg.appendChild(subLabel);
+
+    return svg;
+  }
 
   function makeReportCard(iconSvg, title){
     const card = document.createElement("section");
@@ -841,6 +960,15 @@
     c1Body.append(big, track, sub);
     c1.appendChild(c1Body);
     dom.reportView.appendChild(c1);
+
+    // --- 24 Jam Kegiatan ---
+    const cPie = makeReportCard(REPORT_ICONS.clock, "24 Jam Kegiatan");
+    cPie.appendChild(renderDayChart(todayScheduleKey()));
+    const pieHint = document.createElement("div");
+    pieHint.className = "report-sub day-chart-hint";
+    pieHint.textContent = "Distribusi kegiatan hari ini dalam 24 jam. Titik putih = jam sekarang.";
+    cPie.appendChild(pieHint);
+    dom.reportView.appendChild(cPie);
 
     // --- 7 Hari Terakhir ---
     const c2 = makeReportCard(REPORT_ICONS.chart, "7 Hari Terakhir");

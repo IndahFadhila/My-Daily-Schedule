@@ -508,6 +508,38 @@ li.item.done h2{text-decoration:line-through}
 }
 .report-today .progress-track{height:14px}
 
+/* Day chart (24-hour pie) */
+.day-chart-svg{
+  display:block;
+  width:100%;
+  max-width:260px;
+  height:auto;
+  margin:8px auto 0;
+}
+.day-chart-hour{
+  font-family:'Poppins', system-ui, sans-serif;
+  font-weight:700;
+  font-size:11px;
+  fill:var(--ink-soft);
+}
+.day-chart-time{
+  font-family:'Poppins', system-ui, sans-serif;
+  font-weight:800;
+  font-size:20px;
+  fill:var(--ink);
+}
+.day-chart-sub{
+  font-family:'Poppins', system-ui, sans-serif;
+  font-weight:700;
+  font-size:8px;
+  fill:var(--ink-mute);
+  letter-spacing:0.14em;
+}
+.day-chart-hint{
+  text-align:center;
+  margin-top:10px;
+}
+
 .week-list{display:flex; flex-direction:column; gap:10px}
 .week-row{
   display:grid;
