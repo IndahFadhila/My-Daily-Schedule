@@ -687,9 +687,9 @@
       return false;
     }
     opts = opts || {};
-    // Set app icon (🌠) kalau caller nggak override.
-    // Tanpa ini, Chrome fallback ke huruf "i" default.
-    const iconUrl = new URL("icon.svg", location.href).href;
+    // Notif icon: vector star mengisi canvas (bukan emoji kecil dgn bg box).
+    // Home screen icon tetap pake icon.svg (🌠 emoji).
+    const iconUrl = new URL("notif-icon.svg", location.href).href;
     if(!opts.icon)  opts.icon  = iconUrl;
     if(!opts.badge) opts.badge = iconUrl;
     // Coba SW dulu (mobile-compatible)
