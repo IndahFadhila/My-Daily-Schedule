@@ -2,13 +2,14 @@
 // Strategy: cache-first buat asset app-shell, network-first buat rest.
 // Kalau update file, bump CACHE_VERSION supaya user dapet versi baru.
 
-const CACHE_VERSION = "jadwal-v2";
+const CACHE_VERSION = "jadwal-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./icon.svg",
+  "./favicon.svg",
   "./manifest.json"
 ];
 
