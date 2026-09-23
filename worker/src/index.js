@@ -125,7 +125,7 @@ export default {
     if (path === '/unsubscribe' && request.method === 'POST') {
       return handleUnsubscribe(request, env);
     }
-    if (path === '/test' && request.method === 'POST') {
+    if (path === '/test' && (request.method === 'POST' || request.method === 'GET')) {
       return handleTest(request, env);
     }
     return json({ error: 'not found', path }, env, 404);
