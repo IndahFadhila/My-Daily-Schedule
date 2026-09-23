@@ -134,19 +134,24 @@ export default {
   // Cron: tiap menit, cek jadwal (WIB) dan fire push kalau ada activity yang mulai
   async scheduled(event, env, ctx) {
     const tzOffset = parseInt(env.TZ_OFFSET_HOURS || '7', 10);
-    const now = new Date(Date.now() + tzOffset * 3600 * 1000);
-    // Pake getUTC* karena kita udah shift manual, jam-nya udah representasi WIB
-    const dow = now.getUTCDay();  // 0=Sun, 6=Sat
-    const hh = String(now.getUTCHours()).padStart(2, '0');
-    const mm = String(now.getUTCMinutes()).padStart(2, '0');
+    // Pake event.scheduledTime (millis epoch dari cron scheduler), BUKAN Date.now()
+    // Kalau pake Date.now(), lag 30-60s bisa geser menit -> miss activity.
+    const scheduledMs = event.scheduledTime || Date.now();
+    const wib = new Date(scheduledMs + tzOffset * 3600 * 1000);
+    const dow = wib.getUTCDay();  // 0=Sun, 6=Sat
+    const hh = String(wib.getUTCHours()).padStart(2, '0');
+    const mm = String(wib.getUTCMinutes()).padStart(2, '0');
     const nowHM = hh + ':' + mm;
     const schedKey = (dow === 0 || dow === 6) ? 'weekend' : 'weekday';
     const items = SCHEDULES[schedKey].items;
     const matches = items.filter(it => it.start === nowHM);
+    console.log(`[cron] scheduled=${new Date(scheduledMs).toISOString()} wib=${nowHM} sched=${schedKey} matches=${matches.length}`);
     if (matches.length === 0) return;
 
     for (const it of matches) {
-      ctx.waitUntil(fireForActivity(env, it));
+      ctx.waitUntil(fireForActivity(env, it).then(r => {
+        console.log(`[cron] fired "${it.title}" -> ${JSON.stringify(r)}`);
+      }));
     }
   },
 };

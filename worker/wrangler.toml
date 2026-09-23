@@ -13,6 +13,10 @@ id = "e3d4f166a64149dbb57aa0bac39a25bd"
 [triggers]
 crons = ["* * * * *"]
 
+# Simpan log invocation (bisa dilihat di Cloudflare dashboard -> Worker -> Logs)
+[observability]
+enabled = true
+
 [vars]
 # Public VAPID key (di-share ke client). Isi setelah run: npm run gen-vapid
 VAPID_PUBLIC_KEY = "BDNruPZMz0p-3fSmSkL4srHVx-rYPPbL-N257NdMQdzftIapCxzQsF4mAqMUnzWCiEvXG6Pm2_FAFje22uw62n8"
