@@ -14,6 +14,12 @@
   const DATE_CHECK_MS = 60000;
   const STREAK_THRESHOLD = 50;
   const NOTIF_PREF_KEY = "jadwal_notif_v1";
+  // ==== Push notification config (Cloudflare Worker) ====
+  // Isi setelah deploy worker. Kalau kosong, push server di-skip
+  // dan notif jalan lokal doang (cuma pas app dibuka).
+  const PUSH_WORKER_URL = "https://jadwal-push.indahfadhila.workers.dev";
+  const PUSH_VAPID_PUBLIC = "BDNruPZMz0p-3fSmSkL4srHVx-rYPPbL-N257NdMQdzftIapCxzQsF4mAqMUnzWCiEvXG6Pm2_FAFje22uw62n8";
+  const PUSH_SUB_KEY = "jadwal_push_sub_v1";
   const BELL_ON_SVG = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
   const BELL_OFF_SVG = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.888 17.888 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><path d="m2 2 20 20"/></svg>';
 
@@ -750,6 +756,66 @@
       tag: "jadwal-activity",
     });
   }
+  // ---------- Push subscribe (Cloudflare Worker) ----------
+  function pushConfigured(){ return !!(PUSH_WORKER_URL && PUSH_VAPID_PUBLIC); }
+  function urlB64ToUint8Array(base64String){
+    const padding = "=".repeat((4 - base64String.length % 4) % 4);
+    const b64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(b64);
+    const out = new Uint8Array(raw.length);
+    for(let i=0; i<raw.length; i++) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+  async function subscribeToPush(){
+    if(!pushConfigured()){
+      console.info("[Push] worker URL / VAPID key belum diisi, skip subscribe");
+      return { ok: false, reason: "not-configured" };
+    }
+    if(!("serviceWorker" in navigator) || !("PushManager" in window)){
+      return { ok: false, reason: "unsupported" };
+    }
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if(!sub){
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlB64ToUint8Array(PUSH_VAPID_PUBLIC),
+        });
+      }
+      const res = await fetch(PUSH_WORKER_URL + "/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sub),
+      });
+      if(!res.ok) throw new Error("subscribe HTTP " + res.status);
+      try{ localStorage.setItem(PUSH_SUB_KEY, JSON.stringify({ endpoint: sub.endpoint })); }catch(e){}
+      return { ok: true };
+    }catch(e){
+      console.warn("[Push] subscribe gagal:", e);
+      return { ok: false, reason: String(e) };
+    }
+  }
+  async function unsubscribeFromPush(){
+    if(!pushConfigured()) return;
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if(sub){
+        const endpoint = sub.endpoint;
+        await sub.unsubscribe();
+        await fetch(PUSH_WORKER_URL + "/unsubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint }),
+        }).catch(() => {});
+      }
+      try{ localStorage.removeItem(PUSH_SUB_KEY); }catch(e){}
+    }catch(e){
+      console.warn("[Push] unsubscribe gagal:", e);
+    }
+  }
+
   async function toggleNotif(){
     if(!notifSupported()){
       await showConfirm({
@@ -765,6 +831,7 @@
       notifEnabled = false;
       saveNotifPref(false);
       updateNotifBtnUI();
+      unsubscribeFromPush();
       return;
     }
     const perm = notifPermission();
@@ -785,8 +852,13 @@
     notifEnabled = true;
     saveNotifPref(true);
     updateNotifBtnUI();
+    // Subscribe ke push server (jalan di background bareng notif test)
+    const pushRes = await subscribeToPush();
+    const bodyMsg = pushRes.ok
+      ? "Kamu bakal dapet notif tiap kegiatan mulai, walau app ketutup ✨"
+      : "Notif jalan pas app dibuka. (Push server: " + (pushRes.reason || "off") + ")";
     const ok = await fireNotif("Notifikasi aktif!", {
-      body: "Kamu bakal dapet notif tiap ganti kegiatan.",
+      body: bodyMsg,
       tag: "jadwal-test"
     });
     if(!ok){
@@ -1297,6 +1369,8 @@
   if(notifSupported()){
     if(loadNotifPref() && notifPermission() === "granted"){
       notifEnabled = true;
+      // Refresh push subscription (endpoint bisa expire, atau baru install)
+      subscribeToPush().catch(() => {});
     }
   } else {
     dom.notifBtn.hidden = true;

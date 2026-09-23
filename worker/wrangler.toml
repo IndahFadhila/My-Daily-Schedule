@@ -1,0 +1,28 @@
+name = "jadwal-push"
+main = "src/index.js"
+compatibility_date = "2025-01-15"
+account_id = "5afa43013a267bdade8e39fc2d1418cb"
+
+# KV namespace buat simpen push subscriptions.
+# Isi id-nya setelah run: wrangler kv namespace create SUBS
+[[kv_namespaces]]
+binding = "SUBS"
+id = "e3d4f166a64149dbb57aa0bac39a25bd"
+
+# Cron trigger: tiap menit cek jadwal
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+# Public VAPID key (di-share ke client). Isi setelah run: npm run gen-vapid
+VAPID_PUBLIC_KEY = "BDNruPZMz0p-3fSmSkL4srHVx-rYPPbL-N257NdMQdzftIapCxzQsF4mAqMUnzWCiEvXG6Pm2_FAFje22uw62n8"
+# Subject bebas — email atau URL, buat identifikasi ke push service
+VAPID_SUBJECT = "https://github.com/IndahFadhila/My-Daily-Schedule"
+# Origin GitHub Pages kamu (buat CORS whitelist)
+ALLOWED_ORIGIN = "https://indahfadhila.github.io"
+# Timezone offset dari UTC (WIB = +7)
+TZ_OFFSET_HOURS = "7"
+
+# Secret VAPID_JWK di-set via CLI (bukan di file ini):
+#   wrangler secret put VAPID_JWK
+# (masukin string JSON dari gen-vapid output)

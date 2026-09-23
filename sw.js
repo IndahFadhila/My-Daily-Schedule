@@ -9,7 +9,7 @@
 // Strategy: cache-first buat asset app-shell, network-first buat rest.
 // Kalau update file, bump CACHE_VERSION supaya user dapet versi baru.
 
-const CACHE_VERSION = "jadwal-v26";
+const CACHE_VERSION = "jadwal-v27";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -37,6 +37,23 @@ self.addEventListener("activate", (event) => {
       ))
       .then(() => self.clients.claim())
   );
+});
+
+// Push event dari server (Web Push via Cloudflare Worker).
+// Payload JSON: { title, body, icon, tag }
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; }
+  catch(e){ data = { title: "Notifikasi", body: event.data ? event.data.text() : "" }; }
+  const title = data.title || "Indah's Daily";
+  const iconUrl = new URL("notif-icon.svg?v=3", self.location.href).href;
+  const opts = {
+    body: data.body || "",
+    icon: iconUrl,
+    badge: iconUrl,
+    tag: data.tag || "jadwal-push",
+  };
+  event.waitUntil(self.registration.showNotification(title, opts));
 });
 
 // Klik notifikasi -> focus PWA yang lagi terbuka, atau buka baru.
